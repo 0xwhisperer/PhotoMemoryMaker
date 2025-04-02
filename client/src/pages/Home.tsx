@@ -59,24 +59,24 @@ export default function Home() {
   };
 
   return (
-    <div className="bg-gray-50 font-sans text-gray-800 min-h-screen flex flex-col">
+    <div className="bg-gray-950 font-sans text-gray-300 min-h-screen flex flex-col">
       {/* Navigation */}
-      <nav className="bg-white shadow-sm">
+      <nav className="bg-gray-900 shadow-lg border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex">
               <div className="flex-shrink-0 flex items-center">
                 <Printer className="h-6 w-6 text-primary mr-2" />
                 <span className="text-xl font-bold text-primary">PosterToaster</span>
-                <span className="ml-2 text-xs text-gray-500">Order 11x17 Posters of your Art Fast!</span>
+                <span className="ml-2 text-xs text-gray-400">Order 11x17 Posters of your Art Fast!</span>
               </div>
             </div>
             <div className="flex items-center">
-              <button className="p-2 rounded-md text-gray-500 hover:text-gray-700 focus:outline-none">
+              <button className="p-2 rounded-md text-gray-400 hover:text-primary focus:outline-none transition-colors duration-200">
                 <span className="sr-only">Account</span>
                 <User className="h-6 w-6" />
               </button>
-              <button className="ml-3 p-2 rounded-md text-gray-500 hover:text-gray-700 focus:outline-none">
+              <button className="ml-3 p-2 rounded-md text-gray-400 hover:text-primary focus:outline-none transition-colors duration-200">
                 <span className="sr-only">Cart</span>
                 <ShoppingCart className="h-6 w-6" />
               </button>
@@ -140,7 +140,7 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 mt-12">
+      <footer className="bg-gray-900 border-t border-gray-800 mt-12">
         <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="md:col-span-2">
@@ -148,68 +148,68 @@ export default function Home() {
                 <Printer className="h-5 w-5 text-primary mr-2" />
                 <span className="text-xl font-bold text-primary">PosterToaster</span>
               </div>
-              <p className="mt-2 text-sm text-gray-500">
+              <p className="mt-2 text-sm text-gray-400">
                 Order 11x17 Posters of your Art Fast! We make it simple to convert
                 your digital art into high-quality prints.
               </p>
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-gray-600 tracking-wider uppercase">
+              <h3 className="text-sm font-semibold text-gray-300 tracking-wider uppercase">
                 Support
               </h3>
               <ul className="mt-4 space-y-2">
                 <li>
-                  <a href="#" className="text-sm text-gray-500 hover:text-gray-900">
+                  <a href="#" className="text-sm text-gray-400 hover:text-primary transition-colors duration-200">
                     Help Center
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="text-sm text-gray-500 hover:text-gray-900">
+                  <a href="#" className="text-sm text-gray-400 hover:text-primary transition-colors duration-200">
                     Contact Us
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="text-sm text-gray-500 hover:text-gray-900">
+                  <a href="#" className="text-sm text-gray-400 hover:text-primary transition-colors duration-200">
                     Printing Specs
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="text-sm text-gray-500 hover:text-gray-900">
+                  <a href="#" className="text-sm text-gray-400 hover:text-primary transition-colors duration-200">
                     Shipping Info
                   </a>
                 </li>
               </ul>
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-gray-600 tracking-wider uppercase">
+              <h3 className="text-sm font-semibold text-gray-300 tracking-wider uppercase">
                 Company
               </h3>
               <ul className="mt-4 space-y-2">
                 <li>
-                  <a href="#" className="text-sm text-gray-500 hover:text-gray-900">
+                  <a href="#" className="text-sm text-gray-400 hover:text-primary transition-colors duration-200">
                     About Us
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="text-sm text-gray-500 hover:text-gray-900">
+                  <a href="#" className="text-sm text-gray-400 hover:text-primary transition-colors duration-200">
                     Blog
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="text-sm text-gray-500 hover:text-gray-900">
+                  <a href="#" className="text-sm text-gray-400 hover:text-primary transition-colors duration-200">
                     Terms & Privacy
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="text-sm text-gray-500 hover:text-gray-900">
+                  <a href="#" className="text-sm text-gray-400 hover:text-primary transition-colors duration-200">
                     Careers
                   </a>
                 </li>
               </ul>
             </div>
           </div>
-          <div className="mt-8 pt-8 border-t border-gray-200">
-            <p className="text-sm text-gray-500">
+          <div className="mt-8 pt-8 border-t border-gray-800">
+            <p className="text-sm text-gray-400">
               &copy; {new Date().getFullYear()} PosterToaster. All rights reserved.
             </p>
           </div>

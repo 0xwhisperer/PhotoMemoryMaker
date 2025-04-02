@@ -9,7 +9,7 @@ import {
   formatPrice,
   calculateTotalPrice
 } from "@/lib/utils";
-import type { ProductPricing } from "../../shared/schema";
+import type { ProductPricing } from "@shared/schema";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { 
   Minus, 
@@ -95,8 +95,8 @@ export function ProductSelector({
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Choose Your Product</h1>
-      <p className="mb-6 text-gray-600">
+      <h1 className="text-2xl font-bold mb-6 text-gray-200">Choose Your Product</h1>
+      <p className="mb-6 text-gray-400">
         Select the type of print you'd like to create with your image.
       </p>
 
@@ -107,13 +107,13 @@ export function ProductSelector({
             setProductType("postcard");
             setProductSize("medium");
           }}
-          className={`border rounded-lg overflow-hidden cursor-pointer transition duration-200 transform hover:-translate-y-1 hover:shadow-lg ${
+          className={`card-dark rounded-lg overflow-hidden cursor-pointer transition duration-200 transform hover:-translate-y-1 hover:shadow-lg ${
             productType === "postcard"
               ? "border-primary ring-2 ring-primary ring-opacity-50"
-              : "border-gray-200"
+              : "border-gray-800"
           }`}
         >
-          <div className="aspect-w-3 aspect-h-2 bg-gray-100">
+          <div className="aspect-w-3 aspect-h-2 bg-gray-800">
             <svg 
               className="w-full h-full text-gray-400" 
               viewBox="0 0 100 66"
@@ -126,8 +126,8 @@ export function ProductSelector({
             </svg>
           </div>
           <div className="p-4">
-            <h3 className="font-medium text-lg mb-1">Postcards</h3>
-            <p className="text-gray-600 text-sm mb-3">
+            <h3 className="font-medium text-lg mb-1 text-gray-200">Postcards</h3>
+            <p className="text-gray-400 text-sm mb-3">
               High-quality printed postcards, perfect for greetings and
               announcements.
             </p>
@@ -146,13 +146,13 @@ export function ProductSelector({
             setProductType("poster");
             setProductSize("medium");
           }}
-          className={`border rounded-lg overflow-hidden cursor-pointer transition duration-200 transform hover:-translate-y-1 hover:shadow-lg ${
+          className={`card-dark rounded-lg overflow-hidden cursor-pointer transition duration-200 transform hover:-translate-y-1 hover:shadow-lg ${
             productType === "poster"
               ? "border-primary ring-2 ring-primary ring-opacity-50"
-              : "border-gray-200"
+              : "border-gray-800"
           }`}
         >
-          <div className="aspect-w-3 aspect-h-2 bg-gray-100">
+          <div className="aspect-w-3 aspect-h-2 bg-gray-800">
             <svg 
               className="w-full h-full text-gray-400" 
               viewBox="0 0 100 66"
@@ -166,8 +166,8 @@ export function ProductSelector({
             </svg>
           </div>
           <div className="p-4">
-            <h3 className="font-medium text-lg mb-1">Posters</h3>
-            <p className="text-gray-600 text-sm mb-3">
+            <h3 className="font-medium text-lg mb-1 text-gray-200">Posters</h3>
+            <p className="text-gray-400 text-sm mb-3">
               Premium 11×17 posters and other sizes, perfect for showcasing your
               artwork with stunning quality.
             </p>
@@ -184,17 +184,17 @@ export function ProductSelector({
       {/* Product Configuration */}
       {productType && (
         <div>
-          <h2 className="text-lg font-medium mb-4">
+          <h2 className="text-lg font-medium mb-4 text-gray-200">
             Customize Your{" "}
             <span className="capitalize">
               {productType === "postcard" ? "Postcard" : "Poster"}
             </span>
           </h2>
 
-          <div className="bg-white rounded-lg shadow overflow-hidden mb-6">
+          <div className="card-dark rounded-lg shadow-lg overflow-hidden mb-6">
             <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Image Preview */}
-              <div className="bg-gray-50 rounded-lg overflow-hidden flex items-center justify-center" style={{ minHeight: "200px" }}>
+              <div className="bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center" style={{ minHeight: "200px" }}>
                 <img
                   src={imageUrl}
                   alt="Product preview"
@@ -206,7 +206,7 @@ export function ProductSelector({
               {/* Size Options */}
               <div>
                 <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
                     Size
                   </label>
                   <div className="grid grid-cols-3 gap-2">
@@ -216,12 +216,12 @@ export function ProductSelector({
                         onClick={() => setProductSize(size as ProductSize)}
                         className={`py-2 px-4 rounded-md text-sm text-center border ${
                           productSize === size
-                            ? "bg-blue-50 text-blue-700 border-blue-300"
-                            : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                        }`}
+                            ? "bg-gray-800 text-primary border-primary"
+                            : "bg-gray-900 text-gray-300 border-gray-700 hover:bg-gray-800"
+                        } transition-colors duration-200`}
                       >
                         {size.charAt(0).toUpperCase() + size.slice(1)}
-                        <div className="text-xs mt-1 text-gray-500">
+                        <div className={`text-xs mt-1 ${productSize === size ? "text-cyan-400" : "text-gray-500"}`}>
                           {productType && PRODUCT_SIZES[productType][size as ProductSize]}
                         </div>
                       </button>
@@ -233,7 +233,7 @@ export function ProductSelector({
                 <div className="mb-4">
                   <label
                     htmlFor="quantity"
-                    className="block text-sm font-medium text-gray-700 mb-1"
+                    className="block text-sm font-medium text-gray-300 mb-1"
                   >
                     Quantity
                   </label>
@@ -241,7 +241,7 @@ export function ProductSelector({
                     <Button
                       type="button"
                       variant="outline"
-                      className="p-2 border border-gray-300 rounded-l-md bg-gray-50 text-gray-500 hover:bg-gray-100"
+                      className="p-2 border border-gray-700 rounded-l-md bg-gray-800 text-gray-300 hover:bg-gray-700"
                       onClick={decreaseQuantity}
                       disabled={quantity <= 1}
                     >
@@ -254,12 +254,12 @@ export function ProductSelector({
                       onChange={handleQuantityChange}
                       min="1"
                       max="100"
-                      className="w-16 text-center border-y border-gray-300 py-2 focus:ring-primary focus:border-primary sm:text-sm"
+                      className="w-16 text-center border-y border-gray-700 py-2 bg-gray-900 text-gray-200 focus:ring-primary focus:border-primary sm:text-sm"
                     />
                     <Button
                       type="button"
                       variant="outline"
-                      className="p-2 border border-gray-300 rounded-r-md bg-gray-50 text-gray-500 hover:bg-gray-100"
+                      className="p-2 border border-gray-700 rounded-r-md bg-gray-800 text-gray-300 hover:bg-gray-700"
                       onClick={increaseQuantity}
                       disabled={quantity >= 100}
                     >
@@ -269,20 +269,20 @@ export function ProductSelector({
                 </div>
 
                 {/* Price Display */}
-                <div className="bg-gray-50 p-3 rounded-md">
+                <div className="bg-gray-800 p-3 rounded-md border border-gray-700">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Unit Price:</span>
-                    <span>
+                    <span className="text-gray-400">Unit Price:</span>
+                    <span className="text-gray-200">
                       {pricing && productType && formatPrice(pricing[productType][productSize])}
                     </span>
                   </div>
                   <div className="flex justify-between mt-1">
-                    <span className="text-gray-600">Quantity:</span>
-                    <span>{quantity}</span>
+                    <span className="text-gray-400">Quantity:</span>
+                    <span className="text-gray-200">{quantity}</span>
                   </div>
-                  <div className="flex justify-between mt-2 font-medium text-lg border-t border-gray-200 pt-2">
-                    <span>Total:</span>
-                    <span>{formatPrice(totalPrice)}</span>
+                  <div className="flex justify-between mt-2 font-medium text-lg border-t border-gray-700 pt-2">
+                    <span className="text-gray-300">Total:</span>
+                    <span className="text-primary">{formatPrice(totalPrice)}</span>
                   </div>
                 </div>
               </div>
@@ -294,16 +294,26 @@ export function ProductSelector({
       {/* Navigation Buttons */}
       <div className="flex justify-between mt-8">
         <div className="space-x-2">
-          <Button variant="outline" onClick={onBack}>
+          <Button 
+            variant="outline" 
+            onClick={onBack}
+            className="border-gray-700 text-gray-300 hover:text-white hover:bg-gray-800 transition-colors duration-200"
+          >
             Back
           </Button>
-          <Button variant="ghost" size="sm" onClick={onStartOver} className="text-gray-600">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={onStartOver} 
+            className="text-gray-400 hover:text-gray-200"
+          >
             Start Over
           </Button>
         </div>
         <Button
           onClick={handleContinue}
           disabled={!productType || !productSize}
+          className={`btn-glow ${!productType || !productSize ? 'opacity-50' : ''}`}
         >
           Continue to Checkout
         </Button>
