@@ -99,6 +99,7 @@ export default function Home() {
           <ImageEditor
             imageUrl={imageUrl}
             onBack={() => setCurrentStep(1)}
+            onStartOver={resetOrder}
             onContinue={handleImageEdited}
           />
         )}
@@ -109,6 +110,7 @@ export default function Home() {
             rotation={rotation}
             filter={filter}
             onBack={() => setCurrentStep(2)}
+            onStartOver={resetOrder}
             onContinue={handleProductSelected}
           />
         )}
@@ -129,6 +131,7 @@ export default function Home() {
               unitPrice={unitPrice}
               totalPrice={totalPrice}
               onBack={() => setCurrentStep(3)}
+              onStartOver={resetOrder}
               onOrderComplete={resetOrder}
             />
           )}

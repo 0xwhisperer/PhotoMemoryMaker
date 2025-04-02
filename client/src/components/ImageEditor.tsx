@@ -7,10 +7,11 @@ import { FILTERS } from "@/lib/utils";
 interface ImageEditorProps {
   imageUrl: string;
   onBack: () => void;
+  onStartOver: () => void;
   onContinue: (rotation: number, filter: FilterType) => void;
 }
 
-export function ImageEditor({ imageUrl, onBack, onContinue }: ImageEditorProps) {
+export function ImageEditor({ imageUrl, onBack, onStartOver, onContinue }: ImageEditorProps) {
   const [rotation, setRotation] = useState(0);
   const [filter, setFilter] = useState<FilterType>("none");
 
@@ -106,9 +107,14 @@ export function ImageEditor({ imageUrl, onBack, onContinue }: ImageEditorProps) 
 
       {/* Navigation Buttons */}
       <div className="flex justify-between mt-8">
-        <Button variant="outline" onClick={onBack}>
-          Back
-        </Button>
+        <div className="space-x-2">
+          <Button variant="outline" onClick={onBack}>
+            Back
+          </Button>
+          <Button variant="ghost" size="sm" onClick={onStartOver} className="text-gray-600">
+            Start Over
+          </Button>
+        </div>
         <Button onClick={handleContinue}>Continue</Button>
       </div>
     </div>

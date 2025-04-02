@@ -54,6 +54,7 @@ interface CheckoutFormProps {
   unitPrice: number;
   totalPrice: number;
   onBack: () => void;
+  onStartOver: () => void;
   onOrderComplete: () => void;
 }
 
@@ -68,6 +69,7 @@ export function CheckoutForm({
   unitPrice,
   totalPrice,
   onBack,
+  onStartOver,
   onOrderComplete
 }: CheckoutFormProps) {
   const { toast } = useToast();
@@ -443,9 +445,12 @@ export function CheckoutForm({
       </div>
 
       {/* Navigation Buttons */}
-      <div className="mt-8">
+      <div className="mt-8 flex space-x-2">
         <Button variant="outline" onClick={onBack} disabled={orderMutation.isPending}>
           Back to Product Selection
+        </Button>
+        <Button variant="ghost" size="sm" onClick={onStartOver} className="text-gray-600" disabled={orderMutation.isPending}>
+          Start Over
         </Button>
       </div>
     </div>

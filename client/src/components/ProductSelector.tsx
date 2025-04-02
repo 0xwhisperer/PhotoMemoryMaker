@@ -1,10 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { 
-  Button,
-  Card,
-  CardContent,
-} from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { 
   ProductType, 
   ProductSize, 
@@ -25,6 +21,7 @@ interface ProductSelectorProps {
   rotation: number;
   filter: FilterType;
   onBack: () => void;
+  onStartOver: () => void;
   onContinue: (
     productType: ProductType,
     productSize: ProductSize,
@@ -39,6 +36,7 @@ export function ProductSelector({
   rotation,
   filter,
   onBack,
+  onStartOver,
   onContinue,
 }: ProductSelectorProps) {
   const [productType, setProductType] = useState<ProductType | null>(null);
@@ -294,9 +292,14 @@ export function ProductSelector({
 
       {/* Navigation Buttons */}
       <div className="flex justify-between mt-8">
-        <Button variant="outline" onClick={onBack}>
-          Back
-        </Button>
+        <div className="space-x-2">
+          <Button variant="outline" onClick={onBack}>
+            Back
+          </Button>
+          <Button variant="ghost" size="sm" onClick={onStartOver} className="text-gray-600">
+            Start Over
+          </Button>
+        </div>
         <Button
           onClick={handleContinue}
           disabled={!productType || !productSize}
