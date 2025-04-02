@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useMutation } from "@tanstack/react-query";
@@ -17,9 +17,8 @@ const ACCEPTED_FILE_TYPES = ["image/jpeg", "image/png"];
 
 export function ImageUploader({ onImageUploaded, onContinue }: ImageUploaderProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [isDragActive, setIsDragActive] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { toast } = useToast();
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
@@ -50,20 +49,21 @@ export function ImageUploader({ onImageUploaded, onContinue }: ImageUploaderProp
     },
   });
 
-  const handleFileSelect = (file: File | null) => {
-    if (!file) {
-      toast({
-        title: "No file selected",
-        description: "Please select a file to upload",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Basic validation
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
-      // Check file type
-      if (!ACCEPTED_FILE_TYPES.includes(file.type)) {
+      // Reset previous selection
+      setImagePreview(null);
+      setSelectedFile(null);
+      
+      // Check if there are any files selected
+      if (!event.target.files || event.target.files.length === 0) {
+        return;
+      }
+      
+      const file = event.target.files[0];
+      
+      // Validate file type
+      if (!file.type || !ACCEPTED_FILE_TYPES.includes(file.type)) {
         toast({
           title: "Invalid file type",
           description: "Please upload a JPEG or PNG image",
@@ -71,8 +71,8 @@ export function ImageUploader({ onImageUploaded, onContinue }: ImageUploaderProp
         });
         return;
       }
-
-      // Check file size
+      
+      // Validate file size
       if (file.size > MAX_FILE_SIZE) {
         toast({
           title: "File too large",
@@ -81,75 +81,37 @@ export function ImageUploader({ onImageUploaded, onContinue }: ImageUploaderProp
         });
         return;
       }
-
-      // Create preview and upload
+      
+      // Store the selected file
+      setSelectedFile(file);
+      
+      // Create preview
       const reader = new FileReader();
       reader.onload = (e) => {
         if (e.target?.result) {
           setImagePreview(e.target.result as string);
-          uploadMutation.mutate(file);
         }
-      };
-      reader.onerror = () => {
-        toast({
-          title: "Error reading file",
-          description: "Failed to read the selected file",
-          variant: "destructive",
-        });
       };
       reader.readAsDataURL(file);
     } catch (error) {
+      console.error("Error handling file:", error);
       toast({
         title: "Error processing file",
-        description: "An error occurred while processing the file",
+        description: "An unexpected error occurred while processing the file",
         variant: "destructive",
       });
     }
   };
 
-  const handleBrowseClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileInputChange = () => {
-    const files = fileInputRef.current?.files;
-    if (files && files.length > 0) {
-      handleFileSelect(files[0]);
+  const handleUpload = () => {
+    if (selectedFile) {
+      uploadMutation.mutate(selectedFile);
     }
   };
 
   const resetImage = () => {
     setImagePreview(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  // Simplified drag and drop handlers
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragActive(true);
-  };
-
-  const handleDragLeave = () => {
-    setIsDragActive(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragActive(false);
-    
-    try {
-      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-        handleFileSelect(e.dataTransfer.files[0]);
-      }
-    } catch (error) {
-      toast({
-        title: "Error handling file",
-        description: "Could not process the dropped file",
-        variant: "destructive",
-      });
-    }
+    setSelectedFile(null);
   };
 
   return (
@@ -159,44 +121,33 @@ export function ImageUploader({ onImageUploaded, onContinue }: ImageUploaderProp
         Upload a high-quality image to create your custom print. We support JPG and PNG formats.
       </p>
 
-      {/* Hidden file input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/jpeg, image/png"
-        className="hidden"
-        onChange={handleFileInputChange}
-      />
-
       {!imagePreview ? (
-        <div
-          className={`border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition duration-150 flex flex-col items-center justify-center ${
-            isDragActive ? "border-primary" : "border-gray-700"
-          } hover:border-primary bg-gray-900`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        >
+        <div className="border-2 border-dashed rounded-lg p-12 text-center transition duration-150 flex flex-col items-center justify-center border-gray-700 hover:border-primary bg-gray-900">
           <UploadCloud className="h-12 w-12 text-gray-500 mb-4" />
           <p className="mb-2 text-sm font-medium text-gray-300">
-            Drag and drop your image here
+            Select an image to upload
           </p>
-          <p className="text-xs text-gray-500">JPG or PNG, max 10MB</p>
+          <p className="text-xs text-gray-500 mb-4">JPG or PNG, max 10MB</p>
 
-          <Button 
-            variant="outline" 
-            className="mt-4 border-gray-700 text-gray-300 hover:text-primary hover:border-primary"
-            onClick={handleBrowseClick}
-          >
-            Browse files
-          </Button>
+          <input
+            type="file"
+            accept="image/jpeg, image/png"
+            onChange={handleFileChange}
+            className="block w-full text-sm text-gray-400
+                       file:mr-4 file:py-2 file:px-4
+                       file:rounded-md file:border-0
+                       file:text-sm file:font-medium
+                       file:bg-gray-800 file:text-gray-300
+                       hover:file:bg-gray-700 hover:file:text-primary
+                       file:cursor-pointer file:transition-colors"
+          />
         </div>
       ) : (
         <div className="mt-6">
           <div className="relative overflow-hidden rounded-lg shadow-lg card-dark">
             <img
               src={imagePreview}
-              alt="Uploaded image preview"
+              alt="Selected image preview"
               className="w-full h-auto max-h-96 object-contain bg-gray-800"
             />
             <Button
@@ -209,13 +160,24 @@ export function ImageUploader({ onImageUploaded, onContinue }: ImageUploaderProp
               <X className="h-5 w-5" />
             </Button>
           </div>
+          
+          {!uploadMutation.isPending && !uploadMutation.isSuccess && (
+            <div className="flex justify-center mt-4">
+              <Button 
+                onClick={handleUpload}
+                className="btn-glow"
+              >
+                Upload Image
+              </Button>
+            </div>
+          )}
         </div>
       )}
 
       {uploadMutation.isPending && (
         <div className="mt-4 text-center">
           <LoadingSpinner className="mx-auto" />
-          <p className="mt-2 text-sm text-gray-400">Processing your image...</p>
+          <p className="mt-2 text-sm text-gray-400">Uploading your image...</p>
         </div>
       )}
 
@@ -244,8 +206,8 @@ export function ImageUploader({ onImageUploaded, onContinue }: ImageUploaderProp
       <div className="flex justify-end mt-6">
         <Button
           onClick={onContinue}
-          disabled={!imagePreview || uploadMutation.isPending}
-          className={`btn-glow ${!imagePreview || uploadMutation.isPending ? 'opacity-50' : ''}`}
+          disabled={!uploadMutation.isSuccess}
+          className={`btn-glow ${!uploadMutation.isSuccess ? 'opacity-50' : ''}`}
         >
           Continue
         </Button>
