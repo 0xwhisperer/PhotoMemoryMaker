@@ -118,28 +118,28 @@ export function ImageUploader({ onImageUploaded, onContinue }: ImageUploaderProp
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Upload Your Image</h1>
-      <p className="mb-6 text-gray-600">
+      <h1 className="text-2xl font-bold mb-6 text-gray-200">Upload Your Image</h1>
+      <p className="mb-6 text-gray-400">
         Upload a high-quality image to create your custom print. We support JPG and PNG formats.
       </p>
 
       {!imagePreview ? (
         <div
-          className={`border-2 border-dashed rounded-lg p-12 text-center cursor-pointer hover:border-primary transition duration-150 flex flex-col items-center justify-center ${
-            isDragActive ? "border-primary" : "border-gray-300"
-          }`}
+          className={`border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition duration-150 flex flex-col items-center justify-center ${
+            isDragActive ? "border-primary" : "border-gray-700"
+          } hover:border-primary bg-gray-900`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
-          <UploadCloud className="h-12 w-12 text-gray-400 mb-4" />
-          <p className="mb-2 text-sm font-medium text-gray-700">
+          <UploadCloud className="h-12 w-12 text-gray-500 mb-4" />
+          <p className="mb-2 text-sm font-medium text-gray-300">
             Drag and drop your image here
           </p>
           <p className="text-xs text-gray-500">JPG or PNG, max 10MB</p>
 
           <div className="mt-4 inline-flex rounded-md shadow-sm">
-            <label className="py-2 px-4 border border-gray-300 rounded-md text-sm leading-5 font-medium text-gray-700 hover:text-gray-500 focus:outline-none focus:border-blue-300 focus:shadow-outline-blue active:bg-gray-50 active:text-gray-800 transition duration-150 ease-in-out cursor-pointer">
+            <label className="py-2 px-4 border border-gray-700 rounded-md text-sm leading-5 font-medium text-gray-300 hover:border-primary hover:text-primary transition duration-150 ease-in-out cursor-pointer">
               Browse files
               <input
                 type="file"
@@ -152,15 +152,15 @@ export function ImageUploader({ onImageUploaded, onContinue }: ImageUploaderProp
         </div>
       ) : (
         <div className="mt-6">
-          <div className="relative overflow-hidden rounded-lg shadow-md">
+          <div className="relative overflow-hidden rounded-lg shadow-lg card-dark">
             <img
               src={imagePreview}
               alt="Uploaded image preview"
-              className="w-full h-auto max-h-96 object-contain bg-white"
+              className="w-full h-auto max-h-96 object-contain bg-gray-800"
             />
             <Button
               onClick={resetImage}
-              className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 focus:outline-none h-8 w-8"
+              className="absolute top-2 right-2 bg-gray-800 text-red-400 p-1 rounded-full hover:bg-gray-700 focus:outline-none h-8 w-8 border border-red-600"
               size="icon"
               variant="destructive"
               disabled={uploadMutation.isPending}
@@ -174,16 +174,16 @@ export function ImageUploader({ onImageUploaded, onContinue }: ImageUploaderProp
       {uploadMutation.isPending && (
         <div className="mt-4 text-center">
           <LoadingSpinner className="mx-auto" />
-          <p className="mt-2 text-sm text-gray-600">Processing your image...</p>
+          <p className="mt-2 text-sm text-gray-400">Processing your image...</p>
         </div>
       )}
 
       {uploadMutation.isError && (
-        <Card className="mt-4 bg-red-50 border-red-200 text-red-700">
+        <Card className="mt-4 bg-gray-800 border-red-800 text-red-400">
           <CardContent className="pt-4">
             <div className="flex">
               <svg
-                className="h-5 w-5 text-red-400 mr-2"
+                className="h-5 w-5 text-red-500 mr-2"
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 20 20"
                 fill="currentColor"
@@ -204,6 +204,7 @@ export function ImageUploader({ onImageUploaded, onContinue }: ImageUploaderProp
         <Button
           onClick={onContinue}
           disabled={!imagePreview || uploadMutation.isPending}
+          className={`btn-glow ${!imagePreview || uploadMutation.isPending ? 'opacity-50' : ''}`}
         >
           Continue
         </Button>

@@ -148,10 +148,10 @@ export function CheckoutForm({
 
   if (orderPlaced) {
     return (
-      <div className="bg-white p-8 rounded-lg shadow text-center">
+      <div className="card-dark p-8 rounded-lg shadow-lg text-center">
         <div className="flex justify-center mb-4">
           <svg 
-            className="h-16 w-16 text-green-500" 
+            className="h-16 w-16 text-green-400" 
             xmlns="http://www.w3.org/2000/svg" 
             fill="none" 
             viewBox="0 0 24 24" 
@@ -165,29 +165,29 @@ export function CheckoutForm({
             />
           </svg>
         </div>
-        <h2 className="text-2xl font-bold mb-2">Order Placed Successfully!</h2>
-        <p className="text-gray-600 mb-6">
+        <h2 className="text-2xl font-bold mb-2 text-gray-200">Order Placed Successfully!</h2>
+        <p className="text-gray-400 mb-6">
           Thank you for your order. We'll process it shortly and send you a confirmation email.
         </p>
-        <Button onClick={onOrderComplete} className="px-6">Return to Home</Button>
+        <Button onClick={onOrderComplete} className="px-6 btn-glow">Return to Home</Button>
       </div>
     );
   }
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Checkout</h1>
-      <p className="mb-6 text-gray-600">Complete your order details below.</p>
+      <h1 className="text-2xl font-bold mb-6 text-gray-200">Checkout</h1>
+      <p className="mb-6 text-gray-400">Complete your order details below.</p>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Order Form */}
         <div className="lg:col-span-2">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="bg-white shadow overflow-hidden sm:rounded-md">
+              <div className="card-dark shadow-lg overflow-hidden rounded-md">
                 {/* Shipping Information */}
-                <div className="p-6 border-b border-gray-200">
-                  <h2 className="text-lg font-medium mb-4">Shipping Information</h2>
+                <div className="p-6 border-b border-gray-800">
+                  <h2 className="text-lg font-medium mb-4 text-gray-200">Shipping Information</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -310,7 +310,7 @@ export function CheckoutForm({
                 
                 {/* Payment Information */}
                 <div className="p-6">
-                  <h2 className="text-lg font-medium mb-4">Payment Method</h2>
+                  <h2 className="text-lg font-medium mb-4 text-gray-200">Payment Method</h2>
                   <div className="space-y-4">
                     <div className="flex items-center">
                       <input
@@ -318,12 +318,12 @@ export function CheckoutForm({
                         name="paymentMethod"
                         type="radio"
                         checked
-                        className="focus:ring-primary h-4 w-4 text-primary border-gray-300"
+                        className="focus:ring-primary h-4 w-4 text-primary border-gray-700 bg-gray-800"
                         readOnly
                       />
                       <label
                         htmlFor="card"
-                        className="ml-3 block text-sm font-medium text-gray-700"
+                        className="ml-3 block text-sm font-medium text-gray-300"
                       >
                         Credit Card
                       </label>
@@ -407,7 +407,7 @@ export function CheckoutForm({
                   <div className="mt-8">
                     <Button
                       type="submit"
-                      className="w-full px-6 py-3 text-lg"
+                      className={`btn-glow w-full px-6 py-3 text-lg ${orderMutation.isPending ? 'opacity-50' : ''}`}
                       disabled={orderMutation.isPending}
                     >
                       {orderMutation.isPending ? (
@@ -446,10 +446,21 @@ export function CheckoutForm({
 
       {/* Navigation Buttons */}
       <div className="mt-8 flex space-x-2">
-        <Button variant="outline" onClick={onBack} disabled={orderMutation.isPending}>
+        <Button 
+          variant="outline" 
+          onClick={onBack} 
+          disabled={orderMutation.isPending}
+          className="border-gray-700 text-gray-300 hover:text-white hover:bg-gray-800"
+        >
           Back to Product Selection
         </Button>
-        <Button variant="ghost" size="sm" onClick={onStartOver} className="text-gray-600" disabled={orderMutation.isPending}>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={onStartOver} 
+          className="text-gray-400 hover:text-gray-200 hover:bg-gray-800" 
+          disabled={orderMutation.isPending}
+        >
           Start Over
         </Button>
       </div>

@@ -19,18 +19,19 @@ interface PrintProgressBarProps {
 
 export function PrintProgressBar({ currentStep }: PrintProgressBarProps) {
   return (
-    <div className="bg-white py-4 shadow-sm border-t">
+    <div className="bg-gray-900 py-4 shadow-md border-t border-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
           {PRINT_STEPS.map((step, index) => [
             <div className="flex flex-col items-center" key={`step-${step.id}`}>
               <div
                 className={cn(
-                  "w-8 h-8 rounded-full flex items-center justify-center",
+                  "w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200",
                   currentStep >= step.id
-                    ? "bg-primary text-white"
-                    : "bg-gray-200 text-gray-500"
+                    ? "bg-primary text-white shadow-glow"
+                    : "bg-gray-800 text-gray-500 border border-gray-700"
                 )}
+                style={currentStep >= step.id ? { boxShadow: '0 0 10px rgba(0, 191, 255, 0.5)' } : {}}
               >
                 {step.id}
               </div>
@@ -50,7 +51,7 @@ export function PrintProgressBar({ currentStep }: PrintProgressBarProps) {
                 key={`connector-${step.id}`}
                 className={cn(
                   "h-0.5 w-full max-w-12 mx-2",
-                  currentStep > step.id ? "bg-primary" : "bg-gray-200"
+                  currentStep > step.id ? "bg-primary" : "bg-gray-700"
                 )}
               ></div>
             )
