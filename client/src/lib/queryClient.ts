@@ -11,7 +11,25 @@ export async function apiRequest(
   method: string,
   url: string,
   data?: unknown | undefined,
+  options?: {
+    body?: FormData | string;
+    headers?: Record<string, string>;
+  }
 ): Promise<Response> {
+  // If custom options are provided (for file uploads etc.), use them
+  if (options) {
+    const res = await fetch(url, {
+      method,
+      headers: options.headers || {},
+      body: options.body,
+      credentials: "include",
+    });
+    
+    await throwIfResNotOk(res);
+    return res;
+  }
+  
+  // Default JSON handling
   const res = await fetch(url, {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},

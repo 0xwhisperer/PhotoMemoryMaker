@@ -75,6 +75,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Upload image
   app.post("/api/images/upload", upload.single("image"), async (req: Request, res: Response) => {
     try {
+      // Log the request details for debugging
+      console.log("Upload request received:", {
+        body: req.body ? Object.keys(req.body) : 'none',
+        file: req.file ? 'present' : 'missing',
+        contentType: req.headers['content-type']
+      });
+      
       if (!req.file) {
         return res.status(400).json({ message: "No file uploaded" });
       }
@@ -117,8 +124,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      // Provide more detailed error information
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
       console.error("Image upload error:", error);
-      res.status(500).json({ message: "Failed to process image" });
+      res.status(500).json({ message: `Failed to process image: ${errorMessage}` });
     }
   });
 

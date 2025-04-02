@@ -23,11 +23,14 @@ export function ImageUploader({ onImageUploaded, onContinue }: ImageUploaderProp
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
       const formData = new FormData();
-      formData.append("image", file);
+      formData.append("image", file, file.name);
+      
+      console.log("Uploading file:", file.name, "size:", file.size, "type:", file.type);
 
-      const response = await apiRequest("POST", "/api/images/upload", null, {
+      const response = await apiRequest("POST", "/api/images/upload", undefined, {
         body: formData,
-        headers: {}, // Let the browser set the Content-Type header with the boundary
+        // Don't set Content-Type header, browser will set it with proper boundary
+        headers: {},
       });
 
       return response.json();
