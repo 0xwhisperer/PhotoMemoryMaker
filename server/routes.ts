@@ -88,7 +88,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get file info
       const file = req.file;
-      const fileSizeMb = file.size / (1024 * 1024);
+      // Convert file size to MB and make sure it's a string for the numeric type
+      const fileSizeMb = (file.size / (1024 * 1024)).toString();
 
       // Process image with sharp to get metadata
       await sharp(file.path).metadata();
