@@ -40,10 +40,10 @@ export function OrderSummary({
           </div>
           <div className="ml-4 flex-1">
             <h3 className="text-sm font-medium text-gray-200 capitalize">
-              {`${productSize} ${productType}`}
+              {productSize && productType ? `${productSize} ${productType}` : 'Product'}
             </h3>
             <p className="mt-1 text-sm text-gray-400">
-              {PRODUCT_SIZES[productType][productSize]}
+              {productType && productSize && PRODUCT_SIZES[productType]?.[productSize]}
             </p>
             <p className="mt-1 text-sm text-gray-400">{`Quantity: ${quantity}`}</p>
           </div>
