@@ -4,10 +4,10 @@ import {
   type Image, type InsertImage,
   type Order, type InsertOrder
 } from "@shared/schema";
-import { nanoid } from "nanoid";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
-// modify the interface with any CRUD methods
-// you might need
+// Interface remains the same
 export interface IStorage {
   // User methods
   getUser(id: number): Promise<User | undefined>;
@@ -25,72 +25,54 @@ export interface IStorage {
   listOrders(): Promise<Order[]>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private images: Map<number, Image>;
-  private orders: Map<number, Order>;
-  private currentUserId: number;
-  private currentImageId: number;
-  private currentOrderId: number;
-
-  constructor() {
-    this.users = new Map();
-    this.images = new Map();
-    this.orders = new Map();
-    this.currentUserId = 1;
-    this.currentImageId = 1;
-    this.currentOrderId = 1;
-  }
-
+// Database implementation
+export class DatabaseStorage implements IStorage {
   // User methods
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const results = await db.select().from(users).where(eq(users.id, id));
+    return results.length > 0 ? results[0] : undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    const results = await db.select().from(users).where(eq(users.username, username));
+    return results.length > 0 ? results[0] : undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentUserId++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+    const result = await db.insert(users).values(insertUser).returning();
+    return result[0];
   }
 
   // Image methods
   async getImage(id: number): Promise<Image | undefined> {
-    return this.images.get(id);
+    const results = await db.select().from(images).where(eq(images.id, id));
+    return results.length > 0 ? results[0] : undefined;
   }
 
   async createImage(insertImage: InsertImage): Promise<Image> {
-    const id = this.currentImageId++;
-    const image: Image = { ...insertImage, id };
-    this.images.set(id, image);
-    return image;
+    const result = await db.insert(images).values(insertImage).returning();
+    return result[0];
   }
 
   async listImages(): Promise<Image[]> {
-    return Array.from(this.images.values());
+    return await db.select().from(images);
   }
 
   // Order methods
   async getOrder(id: number): Promise<Order | undefined> {
-    return this.orders.get(id);
+    const results = await db.select().from(orders).where(eq(orders.id, id));
+    return results.length > 0 ? results[0] : undefined;
   }
 
   async createOrder(insertOrder: InsertOrder): Promise<Order> {
-    const id = this.currentOrderId++;
-    const order: Order = { ...insertOrder, id };
-    this.orders.set(id, order);
-    return order;
+    const result = await db.insert(orders).values(insertOrder).returning();
+    return result[0];
   }
 
   async listOrders(): Promise<Order[]> {
-    return Array.from(this.orders.values());
+    return await db.select().from(orders);
   }
 }
 
-export const storage = new MemStorage();
+// Export an instance of the database storage
+export const storage = new DatabaseStorage();
