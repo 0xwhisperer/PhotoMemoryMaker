@@ -56,6 +56,16 @@ export function ImageUploader({ onImageUploaded, onContinue }: ImageUploaderProp
     (file: File) => {
       if (!file) return;
 
+      // Make sure file has a type property
+      if (!file.type) {
+        toast({
+          title: "Invalid file",
+          description: "The file could not be processed",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Validate file type
       if (!ACCEPTED_FILE_TYPES.includes(file.type)) {
         toast({
@@ -88,9 +98,12 @@ export function ImageUploader({ onImageUploaded, onContinue }: ImageUploaderProp
   );
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      handleFileDrop(file);
+    // Check if event and files exist
+    if (event.target?.files && event.target.files.length > 0) {
+      const file = event.target.files[0];
+      if (file) {
+        handleFileDrop(file);
+      }
     }
   };
 
@@ -106,9 +119,13 @@ export function ImageUploader({ onImageUploaded, onContinue }: ImageUploaderProp
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragActive(false);
-    const file = e.dataTransfer.files[0];
-    if (file) {
-      handleFileDrop(file);
+    
+    // Check if dataTransfer and files exist
+    if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      if (file) {
+        handleFileDrop(file);
+      }
     }
   };
 
