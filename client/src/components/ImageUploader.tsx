@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { ChangeEvent, useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { UploadCloud, X } from "lucide-react";
@@ -10,200 +12,203 @@ interface ImageUploaderProps {
   onContinue: () => void;
 }
 
-// Constants
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ACCEPTED_FILE_TYPES = ["image/jpeg", "image/png"];
 
 export function ImageUploader({ onImageUploaded, onContinue }: ImageUploaderProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [uploadSuccess, setUploadSuccess] = useState(false);
-  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
-  const [uploadedImageId, setUploadedImageId] = useState<number | null>(null);
+  const [isDragActive, setIsDragActive] = useState(false);
   const { toast } = useToast();
 
-  // Handle file selection
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    // Reset previous selection
-    setImagePreview(null);
-    setSelectedFile(null);
-    
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
-    
-    const file = files[0];
-    
-    // Validate file type
-    if (!ACCEPTED_FILE_TYPES.includes(file.type)) {
-      toast({
-        title: "Invalid file type",
-        description: "Please upload a JPEG or PNG image",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // Validate file size
-    if (file.size > MAX_FILE_SIZE) {
-      toast({
-        title: "File too large",
-        description: "Maximum file size is 10MB",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setSelectedFile(file);
-    
-    // Create preview
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result;
-      if (result) {
-        setImagePreview(result.toString());
-      }
-    };
-    reader.readAsDataURL(file);
-  };
-
-  // Handle upload
-  const handleUpload = async () => {
-    if (!selectedFile) {
-      toast({
-        title: "No file selected",
-        description: "Please select an image file first",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setUploading(true);
-    
-    try {
+  const uploadMutation = useMutation({
+    mutationFn: async (file: File) => {
       const formData = new FormData();
-      formData.append("image", selectedFile);
+      formData.append("image", file, file.name);
       
-      const response = await fetch("/api/images/upload", {
-        method: "POST",
+      console.log("Uploading file:", file.name, "size:", file.size, "type:", file.type);
+
+      const response = await apiRequest("POST", "/api/images/upload", undefined, {
         body: formData,
+        // Don't set Content-Type header, browser will set it with proper boundary
+        headers: {},
       });
-      
-      if (!response.ok) {
-        throw new Error(`Upload failed with status: ${response.status}`);
-      }
-      
-      const data = await response.json();
+
+      return response.json();
+    },
+    onSuccess: (data) => {
       const imageUrl = `/api/images/file/${data.fileName}`;
-      
-      setUploadedImageId(data.id);
-      setUploadedImageUrl(imageUrl);
-      setUploadSuccess(true);
-      
-      // Notify parent component
       onImageUploaded(data.id, imageUrl);
-      
       toast({
         title: "Image uploaded successfully",
         description: "Your image is ready to be edited",
       });
-    } catch (error) {
-      console.error("Upload error:", error);
+    },
+    onError: (error) => {
       toast({
         title: "Upload failed",
-        description: error instanceof Error ? error.message : "Failed to upload image",
+        description: error.message || "Failed to upload image. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setUploading(false);
+    },
+  });
+
+  const handleFileDrop = useCallback(
+    (file: File) => {
+      if (!file) return;
+
+      // Validate file type
+      if (!ACCEPTED_FILE_TYPES.includes(file.type)) {
+        toast({
+          title: "Invalid file type",
+          description: "Please upload a JPEG or PNG image",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate file size
+      if (file.size > MAX_FILE_SIZE) {
+        toast({
+          title: "File too large",
+          description: "Maximum file size is 10MB",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Create preview and upload file
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+        uploadMutation.mutate(file);
+      };
+      reader.readAsDataURL(file);
+    },
+    [toast, uploadMutation]
+  );
+
+  const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      handleFileDrop(file);
     }
   };
 
-  // Clear selected image
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragActive(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragActive(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragActive(false);
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      handleFileDrop(file);
+    }
+  };
+
   const resetImage = () => {
     setImagePreview(null);
-    setSelectedFile(null);
   };
 
   return (
-    <div className="text-gray-200">
-      <h1 className="text-2xl font-bold mb-6">Upload Your Image</h1>
+    <div>
+      <h1 className="text-2xl font-bold mb-6 text-gray-200">Upload Your Image</h1>
       <p className="mb-6 text-gray-400">
         Upload a high-quality image to create your custom print. We support JPG and PNG formats.
       </p>
 
       {!imagePreview ? (
-        <div className="border-2 border-dashed rounded-lg p-12 text-center border-gray-700 hover:border-primary bg-gray-900">
-          <UploadCloud className="h-12 w-12 text-gray-500 mb-4 mx-auto" />
+        <div
+          className={`border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition duration-150 flex flex-col items-center justify-center ${
+            isDragActive ? "border-primary" : "border-gray-700"
+          } hover:border-primary bg-gray-900`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
+          <UploadCloud className="h-12 w-12 text-gray-500 mb-4" />
           <p className="mb-2 text-sm font-medium text-gray-300">
-            Select an image to upload
+            Drag and drop your image here
           </p>
-          <p className="text-xs text-gray-500 mb-4">JPG or PNG, max 10MB</p>
+          <p className="text-xs text-gray-500">JPG or PNG, max 10MB</p>
 
-          <input
-            type="file"
-            accept="image/jpeg, image/png"
-            onChange={handleFileChange}
-            className="block w-full text-sm text-gray-400
-                       file:mr-4 file:py-2 file:px-4
-                       file:rounded-md file:border-0
-                       file:text-sm file:font-medium
-                       file:bg-gray-800 file:text-gray-300
-                       hover:file:bg-gray-700 hover:file:text-primary
-                       file:cursor-pointer file:transition-colors"
-          />
+          <div className="mt-4 inline-flex rounded-md shadow-sm">
+            <label className="py-2 px-4 border border-gray-700 rounded-md text-sm leading-5 font-medium text-gray-300 hover:border-primary hover:text-primary transition duration-150 ease-in-out cursor-pointer">
+              Browse files
+              <input
+                type="file"
+                className="sr-only"
+                accept="image/jpeg, image/png"
+                onChange={handleInputChange}
+              />
+            </label>
+          </div>
         </div>
       ) : (
         <div className="mt-6">
-          <div className="relative overflow-hidden rounded-lg shadow-lg">
+          <div className="relative overflow-hidden rounded-lg shadow-lg card-dark">
             <img
               src={imagePreview}
-              alt="Selected image preview"
+              alt="Uploaded image preview"
               className="w-full h-auto max-h-96 object-contain bg-gray-800"
             />
             <Button
               onClick={resetImage}
-              className="absolute top-2 right-2 bg-gray-800 text-red-400 p-1 rounded-full hover:bg-gray-700 h-8 w-8 border border-red-600"
+              className="absolute top-2 right-2 bg-gray-800 text-red-400 p-1 rounded-full hover:bg-gray-700 focus:outline-none h-8 w-8 border border-red-600"
               size="icon"
               variant="destructive"
-              disabled={uploading}
+              disabled={uploadMutation.isPending}
             >
               <X className="h-5 w-5" />
             </Button>
           </div>
-          
-          {!uploadSuccess && !uploading && (
-            <div className="flex justify-center mt-4">
-              <Button 
-                onClick={handleUpload}
-                className="btn-glow"
-                disabled={uploading}
-              >
-                Upload Image
-              </Button>
-            </div>
-          )}
         </div>
       )}
 
-      {uploading && (
-        <Card className="mt-4 text-center p-4 bg-gray-800 border-gray-700">
+      {uploadMutation.isPending && (
+        <div className="mt-4 text-center">
           <LoadingSpinner className="mx-auto" />
-          <p className="mt-2 text-sm text-gray-400">Uploading your image...</p>
+          <p className="mt-2 text-sm text-gray-400">Processing your image...</p>
+        </div>
+      )}
+
+      {uploadMutation.isError && (
+        <Card className="mt-4 bg-gray-800 border-red-800 text-red-400">
+          <CardContent className="pt-4">
+            <div className="flex">
+              <svg
+                className="h-5 w-5 text-red-500 mr-2"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span>{uploadMutation.error.message || "Upload failed. Please try again."}</span>
+            </div>
+          </CardContent>
         </Card>
       )}
 
-      {uploadSuccess && (
-        <Card className="mt-4 text-center p-4 bg-gray-800/50 border-green-700/50">
-          <p className="text-green-400 mb-4">Image uploaded successfully!</p>
-          <Button 
-            onClick={onContinue}
-            className="btn-glow"
-          >
-            Continue to Image Editor
-          </Button>
-        </Card>
-      )}
+      <div className="flex justify-end mt-6">
+        <Button
+          onClick={onContinue}
+          disabled={!imagePreview || uploadMutation.isPending}
+          className={`btn-glow ${!imagePreview || uploadMutation.isPending ? 'opacity-50' : ''}`}
+        >
+          Continue
+        </Button>
+      </div>
     </div>
   );
 }
