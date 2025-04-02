@@ -52,9 +52,9 @@ export const PRODUCT_SIZES = {
     large: '6 × 8 in'
   },
   poster: {
-    small: '8 × 10 in',
-    medium: '11 × 14 in',
-    large: '16 × 20 in'
+    small: '8.5 × 11 in',
+    medium: '11 × 17 in',
+    large: '18 × 24 in'
   }
 };
 

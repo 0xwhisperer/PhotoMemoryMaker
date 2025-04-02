@@ -5,7 +5,7 @@ import { ImageEditor } from "@/components/ImageEditor";
 import { ProductSelector } from "@/components/ProductSelector";
 import { CheckoutForm } from "@/components/CheckoutForm";
 import { FilterType, ProductSize, ProductType } from "@/lib/utils";
-import { User, ShoppingCart } from "lucide-react";
+import { User, ShoppingCart, Printer } from "lucide-react";
 
 export default function Home() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -66,7 +66,9 @@ export default function Home() {
           <div className="flex justify-between h-16">
             <div className="flex">
               <div className="flex-shrink-0 flex items-center">
-                <span className="text-xl font-bold text-primary">PrintPerfect</span>
+                <Printer className="h-6 w-6 text-primary mr-2" />
+                <span className="text-xl font-bold text-primary">PosterToaster</span>
+                <span className="ml-2 text-xs text-gray-500">Order 11x17 Posters of your Art Fast!</span>
               </div>
             </div>
             <div className="flex items-center">
@@ -142,10 +144,13 @@ export default function Home() {
         <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="md:col-span-2">
-              <span className="text-xl font-bold text-primary">PrintPerfect</span>
+              <div className="flex items-center">
+                <Printer className="h-5 w-5 text-primary mr-2" />
+                <span className="text-xl font-bold text-primary">PosterToaster</span>
+              </div>
               <p className="mt-2 text-sm text-gray-500">
-                Creating beautiful custom prints from your digital images. Turn your
-                memories into tangible keepsakes.
+                Order 11x17 Posters of your Art Fast! We make it simple to convert
+                your digital art into high-quality prints.
               </p>
             </div>
             <div>
@@ -205,7 +210,7 @@ export default function Home() {
           </div>
           <div className="mt-8 pt-8 border-t border-gray-200">
             <p className="text-sm text-gray-500">
-              &copy; {new Date().getFullYear()} PrintPerfect. All rights reserved.
+              &copy; {new Date().getFullYear()} PosterToaster. All rights reserved.
             </p>
           </div>
         </div>

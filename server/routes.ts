@@ -60,9 +60,9 @@ const PRODUCT_PRICING = {
     large: 3.50,
   },
   poster: {
-    small: 12.99,
-    medium: 19.99,
-    large: 29.99,
+    small: 14.99,
+    medium: 17.99, // 11×17, our featured product at a special price
+    large: 32.99,
   },
 };
 

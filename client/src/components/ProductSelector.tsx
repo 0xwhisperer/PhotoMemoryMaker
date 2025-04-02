@@ -9,6 +9,7 @@ import {
   formatPrice,
   calculateTotalPrice
 } from "@/lib/utils";
+import type { ProductPricing } from "../../shared/schema";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { 
   Minus, 
@@ -45,7 +46,7 @@ export function ProductSelector({
   const [totalPrice, setTotalPrice] = useState(0);
 
   // Fetch product pricing
-  const { data: pricing, isLoading } = useQuery({
+  const { data: pricing, isLoading } = useQuery<ProductPricing>({
     queryKey: ["/api/pricing"],
   });
 
@@ -167,8 +168,8 @@ export function ProductSelector({
           <div className="p-4">
             <h3 className="font-medium text-lg mb-1">Posters</h3>
             <p className="text-gray-600 text-sm mb-3">
-              Premium large-format posters in various sizes, perfect for
-              decoration.
+              Premium 11×17 posters and other sizes, perfect for showcasing your
+              artwork with stunning quality.
             </p>
             <div className="flex items-center text-sm text-primary">
               <span>
