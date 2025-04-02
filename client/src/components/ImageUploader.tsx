@@ -1,4 +1,4 @@
-import { ChangeEvent, useCallback, useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useMutation } from "@tanstack/react-query";
@@ -19,17 +19,15 @@ export function ImageUploader({ onImageUploaded, onContinue }: ImageUploaderProp
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isDragActive, setIsDragActive] = useState(false);
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append("image", file, file.name);
-      
-      console.log("Uploading file:", file.name, "size:", file.size, "type:", file.type);
 
       const response = await apiRequest("POST", "/api/images/upload", undefined, {
         body: formData,
-        // Don't set Content-Type header, browser will set it with proper boundary
         headers: {},
       });
 
@@ -52,21 +50,19 @@ export function ImageUploader({ onImageUploaded, onContinue }: ImageUploaderProp
     },
   });
 
-  const handleFileDrop = useCallback(
-    (file: File) => {
-      if (!file) return;
+  const handleFileSelect = (file: File | null) => {
+    if (!file) {
+      toast({
+        title: "No file selected",
+        description: "Please select a file to upload",
+        variant: "destructive",
+      });
+      return;
+    }
 
-      // Make sure file has a type property
-      if (!file.type) {
-        toast({
-          title: "Invalid file",
-          description: "The file could not be processed",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Validate file type
+    // Basic validation
+    try {
+      // Check file type
       if (!ACCEPTED_FILE_TYPES.includes(file.type)) {
         toast({
           title: "Invalid file type",
@@ -76,7 +72,7 @@ export function ImageUploader({ onImageUploaded, onContinue }: ImageUploaderProp
         return;
       }
 
-      // Validate file size
+      // Check file size
       if (file.size > MAX_FILE_SIZE) {
         toast({
           title: "File too large",
@@ -86,28 +82,51 @@ export function ImageUploader({ onImageUploaded, onContinue }: ImageUploaderProp
         return;
       }
 
-      // Create preview and upload file
+      // Create preview and upload
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-        uploadMutation.mutate(file);
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          setImagePreview(e.target.result as string);
+          uploadMutation.mutate(file);
+        }
+      };
+      reader.onerror = () => {
+        toast({
+          title: "Error reading file",
+          description: "Failed to read the selected file",
+          variant: "destructive",
+        });
       };
       reader.readAsDataURL(file);
-    },
-    [toast, uploadMutation]
-  );
-
-  const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-    // Check if event and files exist
-    if (event.target?.files && event.target.files.length > 0) {
-      const file = event.target.files[0];
-      if (file) {
-        handleFileDrop(file);
-      }
+    } catch (error) {
+      toast({
+        title: "Error processing file",
+        description: "An error occurred while processing the file",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleBrowseClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileInputChange = () => {
+    const files = fileInputRef.current?.files;
+    if (files && files.length > 0) {
+      handleFileSelect(files[0]);
+    }
+  };
+
+  const resetImage = () => {
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Simplified drag and drop handlers
+  const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragActive(true);
   };
@@ -116,21 +135,21 @@ export function ImageUploader({ onImageUploaded, onContinue }: ImageUploaderProp
     setIsDragActive(false);
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragActive(false);
     
-    // Check if dataTransfer and files exist
-    if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
-      const file = e.dataTransfer.files[0];
-      if (file) {
-        handleFileDrop(file);
+    try {
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        handleFileSelect(e.dataTransfer.files[0]);
       }
+    } catch (error) {
+      toast({
+        title: "Error handling file",
+        description: "Could not process the dropped file",
+        variant: "destructive",
+      });
     }
-  };
-
-  const resetImage = () => {
-    setImagePreview(null);
   };
 
   return (
@@ -139,6 +158,15 @@ export function ImageUploader({ onImageUploaded, onContinue }: ImageUploaderProp
       <p className="mb-6 text-gray-400">
         Upload a high-quality image to create your custom print. We support JPG and PNG formats.
       </p>
+
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg, image/png"
+        className="hidden"
+        onChange={handleFileInputChange}
+      />
 
       {!imagePreview ? (
         <div
@@ -155,17 +183,13 @@ export function ImageUploader({ onImageUploaded, onContinue }: ImageUploaderProp
           </p>
           <p className="text-xs text-gray-500">JPG or PNG, max 10MB</p>
 
-          <div className="mt-4 inline-flex rounded-md shadow-sm">
-            <label className="py-2 px-4 border border-gray-700 rounded-md text-sm leading-5 font-medium text-gray-300 hover:border-primary hover:text-primary transition duration-150 ease-in-out cursor-pointer">
-              Browse files
-              <input
-                type="file"
-                className="sr-only"
-                accept="image/jpeg, image/png"
-                onChange={handleInputChange}
-              />
-            </label>
-          </div>
+          <Button 
+            variant="outline" 
+            className="mt-4 border-gray-700 text-gray-300 hover:text-primary hover:border-primary"
+            onClick={handleBrowseClick}
+          >
+            Browse files
+          </Button>
         </div>
       ) : (
         <div className="mt-6">
