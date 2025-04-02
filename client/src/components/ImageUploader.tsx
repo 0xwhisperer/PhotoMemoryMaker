@@ -1,217 +1,145 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { UploadCloud, X } from "lucide-react";
 
+// Super simplified component with minimal dependencies
 interface ImageUploaderProps {
   onImageUploaded: (imageId: number, imageUrl: string) => void;
   onContinue: () => void;
 }
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-const ACCEPTED_FILE_TYPES = ["image/jpeg", "image/png"];
-
 export function ImageUploader({ onImageUploaded, onContinue }: ImageUploaderProps) {
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const { toast } = useToast();
+  const [uploading, setUploading] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [imageId, setImageId] = useState<number | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const uploadMutation = useMutation({
-    mutationFn: async (file: File) => {
-      const formData = new FormData();
-      formData.append("image", file, file.name);
+  // When upload succeeds, notify parent component
+  useEffect(() => {
+    if (uploadSuccess && imageId && imageUrl) {
+      onImageUploaded(imageId, imageUrl);
+    }
+  }, [uploadSuccess, imageId, imageUrl, onImageUploaded]);
 
-      const response = await apiRequest("POST", "/api/images/upload", undefined, {
-        body: formData,
-        headers: {},
-      });
-
-      return response.json();
-    },
-    onSuccess: (data) => {
-      const imageUrl = `/api/images/file/${data.fileName}`;
-      onImageUploaded(data.id, imageUrl);
-      toast({
-        title: "Image uploaded successfully",
-        description: "Your image is ready to be edited",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Upload failed",
-        description: error.message || "Failed to upload image. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    
+    setUploading(true);
+    setErrorMessage(null);
+    
     try {
-      // Reset previous selection
-      setImagePreview(null);
-      setSelectedFile(null);
+      const formElement = event.currentTarget;
+      const formData = new FormData(formElement);
       
-      // Check if there are any files selected
-      if (!event.target.files || event.target.files.length === 0) {
+      // Get the file input from the form
+      const fileInput = formElement.querySelector('input[type="file"]') as HTMLInputElement;
+      if (!fileInput?.files || fileInput.files.length === 0) {
+        setErrorMessage("Please select a file");
+        setUploading(false);
         return;
       }
       
-      const file = event.target.files[0];
-      
-      // Validate file type
-      if (!file.type || !ACCEPTED_FILE_TYPES.includes(file.type)) {
-        toast({
-          title: "Invalid file type",
-          description: "Please upload a JPEG or PNG image",
-          variant: "destructive",
-        });
+      // Simple manual validation
+      const file = fileInput.files[0];
+      if (!file.type || !["image/jpeg", "image/png"].includes(file.type)) {
+        setErrorMessage("Please upload a JPEG or PNG image");
+        setUploading(false);
         return;
       }
       
-      // Validate file size
-      if (file.size > MAX_FILE_SIZE) {
-        toast({
-          title: "File too large",
-          description: "Maximum file size is 10MB",
-          variant: "destructive",
-        });
+      if (file.size > 10 * 1024 * 1024) { // 10MB
+        setErrorMessage("File size must be less than 10MB");
+        setUploading(false);
         return;
       }
       
-      // Store the selected file
-      setSelectedFile(file);
-      
-      // Create preview
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (e.target?.result) {
-          setImagePreview(e.target.result as string);
-        }
-      };
-      reader.readAsDataURL(file);
-    } catch (error) {
-      console.error("Error handling file:", error);
-      toast({
-        title: "Error processing file",
-        description: "An unexpected error occurred while processing the file",
-        variant: "destructive",
+      // Upload using basic fetch instead of tanstack-query to minimize dependencies
+      const response = await fetch("/api/images/upload", {
+        method: "POST",
+        body: formData,
       });
+      
+      if (!response.ok) {
+        throw new Error(`Upload failed with status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Set states on success
+      setImageId(data.id);
+      setImageUrl(`/api/images/file/${data.fileName}`);
+      setUploadSuccess(true);
+      
+    } catch (error) {
+      console.error("Upload error:", error);
+      setErrorMessage(error instanceof Error ? error.message : "Unknown upload error");
+    } finally {
+      setUploading(false);
     }
-  };
-
-  const handleUpload = () => {
-    if (selectedFile) {
-      uploadMutation.mutate(selectedFile);
-    }
-  };
-
-  const resetImage = () => {
-    setImagePreview(null);
-    setSelectedFile(null);
-  };
-
+  }
+  
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6 text-gray-200">Upload Your Image</h1>
+    <div className="text-gray-200">
+      <h1 className="text-2xl font-bold mb-6">Upload Your Image</h1>
       <p className="mb-6 text-gray-400">
         Upload a high-quality image to create your custom print. We support JPG and PNG formats.
       </p>
-
-      {!imagePreview ? (
-        <div className="border-2 border-dashed rounded-lg p-12 text-center transition duration-150 flex flex-col items-center justify-center border-gray-700 hover:border-primary bg-gray-900">
-          <UploadCloud className="h-12 w-12 text-gray-500 mb-4" />
-          <p className="mb-2 text-sm font-medium text-gray-300">
-            Select an image to upload
-          </p>
-          <p className="text-xs text-gray-500 mb-4">JPG or PNG, max 10MB</p>
-
-          <input
-            type="file"
-            accept="image/jpeg, image/png"
-            onChange={handleFileChange}
-            className="block w-full text-sm text-gray-400
-                       file:mr-4 file:py-2 file:px-4
-                       file:rounded-md file:border-0
-                       file:text-sm file:font-medium
-                       file:bg-gray-800 file:text-gray-300
-                       hover:file:bg-gray-700 hover:file:text-primary
-                       file:cursor-pointer file:transition-colors"
-          />
-        </div>
-      ) : (
-        <div className="mt-6">
-          <div className="relative overflow-hidden rounded-lg shadow-lg card-dark">
-            <img
-              src={imagePreview}
-              alt="Selected image preview"
-              className="w-full h-auto max-h-96 object-contain bg-gray-800"
+      
+      {!uploadSuccess ? (
+        <form onSubmit={handleSubmit} className="border-2 border-dashed border-gray-700 rounded-lg p-8 text-center bg-gray-900">
+          <div className="mb-6">
+            <p className="text-lg font-medium mb-2">Select an image to upload</p>
+            <p className="text-sm text-gray-400 mb-4">JPG or PNG, max 10MB</p>
+            
+            <input 
+              type="file" 
+              name="image" 
+              accept="image/jpeg, image/png"
+              className="w-full max-w-md mx-auto border border-gray-700 rounded p-2 bg-gray-800 text-gray-300"
+              required
             />
-            <Button
-              onClick={resetImage}
-              className="absolute top-2 right-2 bg-gray-800 text-red-400 p-1 rounded-full hover:bg-gray-700 focus:outline-none h-8 w-8 border border-red-600"
-              size="icon"
-              variant="destructive"
-              disabled={uploadMutation.isPending}
-            >
-              <X className="h-5 w-5" />
-            </Button>
           </div>
           
-          {!uploadMutation.isPending && !uploadMutation.isSuccess && (
-            <div className="flex justify-center mt-4">
-              <Button 
-                onClick={handleUpload}
-                className="btn-glow"
-              >
-                Upload Image
-              </Button>
+          {errorMessage && (
+            <div className="my-4 p-3 bg-red-900/30 border border-red-800 rounded-md text-red-400">
+              {errorMessage}
             </div>
           )}
+          
+          <Button 
+            type="submit" 
+            disabled={uploading}
+            className="bg-primary text-white hover:bg-primary/90 disabled:opacity-50 mt-2"
+          >
+            {uploading ? <LoadingSpinner size="sm" color="white" /> : 'Upload Image'}
+          </Button>
+        </form>
+      ) : (
+        <div className="text-center">
+          <div className="p-4 bg-green-900/30 border border-green-700 rounded mb-6">
+            Image uploaded successfully! Click Continue to proceed to the next step.
+          </div>
+          
+          <div className="max-w-sm mx-auto mb-6 bg-gray-800 p-2 rounded">
+            {imageUrl && (
+              <img 
+                src={imageUrl} 
+                alt="Uploaded preview" 
+                className="max-h-64 mx-auto object-contain"
+              />
+            )}
+          </div>
+          
+          <Button 
+            onClick={onContinue}
+            className="btn-glow"
+          >
+            Continue
+          </Button>
         </div>
       )}
-
-      {uploadMutation.isPending && (
-        <div className="mt-4 text-center">
-          <LoadingSpinner className="mx-auto" />
-          <p className="mt-2 text-sm text-gray-400">Uploading your image...</p>
-        </div>
-      )}
-
-      {uploadMutation.isError && (
-        <Card className="mt-4 bg-gray-800 border-red-800 text-red-400">
-          <CardContent className="pt-4">
-            <div className="flex">
-              <svg
-                className="h-5 w-5 text-red-500 mr-2"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <span>{uploadMutation.error.message || "Upload failed. Please try again."}</span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="flex justify-end mt-6">
-        <Button
-          onClick={onContinue}
-          disabled={!uploadMutation.isSuccess}
-          className={`btn-glow ${!uploadMutation.isSuccess ? 'opacity-50' : ''}`}
-        >
-          Continue
-        </Button>
-      </div>
     </div>
   );
 }
